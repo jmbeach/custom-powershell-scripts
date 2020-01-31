@@ -11,6 +11,11 @@ function Search-C-FileName([string] $fileName, [string] $fileType) {
 	}
 }
 
+function Search-Registry($search) {
+	Get-ChildItem HKCU: -Recurse -ErrorAction SilentlyContinue | Where-Object { $_.PSPath -like $search }
+	Get-ChildItem HKLM: -Recurse -ErrorAction SilentlyContinue | Where-Object { $_.PSPath -like $search }
+}
+
 function Convert-Pdfs2Txt () {
 	Get-ChildItem *.pdf | foreach { python C:\Python27\Scripts\pdf2txt.py $_.Name | Out-File -Encoding ascii $($_.Name + '.txt') }
 }
