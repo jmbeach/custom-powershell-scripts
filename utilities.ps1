@@ -1,7 +1,3 @@
-function Get-JsonFromFile([string] $filePath) {
-	return Get-Content -Raw -Path $filePath | ConvertFrom-Json
-}
-
 function Search-C-FileName([string] $fileName, [string] $fileType) {
 	if (!($fileType -eq '')) {
 		Get-ChildItem -Path C:\ -Filter *$fileName* -Include *.$fileType -Recurse
@@ -17,7 +13,7 @@ function Search-Registry($search) {
 }
 
 function Convert-Pdfs2Txt () {
-	Get-ChildItem *.pdf | foreach { python C:\Python27\Scripts\pdf2txt.py $_.Name | Out-File -Encoding ascii $($_.Name + '.txt') }
+	Get-ChildItem *.pdf | ForEach-Object { python C:\Python27\Scripts\pdf2txt.py $_.Name | Out-File -Encoding ascii $($_.Name + '.txt') }
 }
 
 function Convert-ObjectToHash ($asObj) {
@@ -28,11 +24,74 @@ function Convert-ObjectToHash ($asObj) {
 }
 
 function Convert-Htmls2Txt () {
-	Get-ChildItem -r *.html | foreach { pandoc $_.Name -o $($_.Name + '.txt') }
+	Get-ChildItem -r *.html | ForEach-Object { pandoc $_.Name -o $($_.Name + '.txt') }
 }
 
 function Convert-Pdf2Txt () {
 	python C:\Python27\Scripts\pdf2txt.py $1 | Out-File -Encoding ascii $($1 + '.txt') 
+}
+
+# only works for objects (not collections) right now
+function ConvertTo-JsonBetter ([parameter(ValueFromPipeline=$true)]$inputObject, $sortProperties) {
+	$json = [System.Text.StringBuilder]::new()
+	$json.AppendLine('{') | Out-Null;
+	function writeJson($obj, $key, $level, $lastProperty) {
+		function writeTab() {
+			for ($i = 0; $i -lt $level; $i++) {
+				$json.Append('  ') | Out-Null;
+			}
+		}
+		
+		writeTab
+
+		$value = $obj.PSObject.Properties[$key].Value;
+		
+
+		$json.Append('"') | Out-Null;
+		$json.Append($key) | Out-Null;
+		if ($value.GetType().Name -eq 'PSCustomObject') {
+			$json.AppendLine('": {') | Out-Null;
+			$properties = [System.Linq.Enumerable]::ToList($value.PSObject.Properties);
+			if ($sortProperties) {
+				$properties = $properties | Sort-Object Name
+			}
+
+			for ($i = 0; $i -lt $properties.Count; $i++) {
+				$property = $properties[$i];
+				writeJson -obj $value -key $property.Name -level ($level + 1) -lastProperty ($i -eq $properties.Count - 1);
+			}
+
+			writeTab
+			if (-not $lastProperty) {
+				$json.AppendLine('},') | Out-Null;
+			} else {
+				$json.AppendLine('}') | Out-Null;
+			}
+		} else {
+			$json.Append('": "') | Out-Null;
+			$json.Append($value) | Out-Null;
+			$json.Append('"') | Out-Null;
+			if (-not $lastProperty) {
+				$json.AppendLine(',') | Out-Null;
+			} else {
+				$json.AppendLine() | Out-Null;
+			}
+		}
+	}
+
+	$properties = [System.Linq.Enumerable]::ToList($inputObject.PSObject.Properties);
+	if ($sortProperties) {
+		$properties = $properties | Sort-Object Name;
+	}
+
+	for ($i = 0; $i -lt $properties.Count; $i++) {
+		$property = $properties[$i];
+		writeJson -obj $inputObject -key $property.Name -level 1 -lastProperty ($i -eq $properties.Count - 1);
+	}
+
+	$json.AppendLine('}') | Out-Null;
+
+	return $json.ToString();
 }
 
 function Get-EmojiShrug () {
