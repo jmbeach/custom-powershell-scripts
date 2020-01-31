@@ -18,35 +18,6 @@ function set-ip-enabled([string] $networkInterface) {
 	netsh interface set interface $networkInterface enabled
 }
 
-function set-ip-eth-wi-internal {
-	$ip = "192.168.201.26"
-	$strMask = "255.255.255.0"
-	$gateway = "192.168.201.254"
-	$dns1 = "8.8.8.8"
-	$dns2 = "8.8.4.4"
-	set-ip-static $ip $strMask $gateway $dns1 $dns2 (getEthernetInterface)
-}
-
-function set-ip-wireless-wi-internal {
-	$ip = "192.168.201.26"
-	$strMask = "255.255.255.0"
-	$gateway = "192.168.201.254"
-	$dns1 = "8.8.8.8"
-	$dns2 = "8.8.4.4"
-	$networkInterface = "Wi-Fi 2"
-	set-ip-static $ip $strMask $gateway $dns1 $dns2 $networkInterface
-}
-
-function set-ip-wireless-wi {
-	$ip = "172.25.113.247"
-	$strMask = "255.255.248.0"
-	$gateway = "172.25.113.1"
-	$dns1 = "8.8.8.8"
-	$dns2 = "8.8.4.4"
-	$networkInterface = "Wi-Fi 2"
-	set-ip-static $ip $strMask $gateway $dns1 $dns2 $networkInterface
-}
-
 function set-ip-wireless-dhcp {
 	$networkInterface = "Wi-Fi 2"
 	netsh interface ipv4 set address name=$networkInterface dhcp
@@ -72,16 +43,6 @@ function set-ip-eth-disabled {
 
 function set-ip-eth-enabled {
 	set-ip-enabled (getEthernetInterface)
-}
-
-function set-ip-eth-williams-factory {
-	$ip = "172.25.113.247"
-	$strMask = "255.255.248.0"
-	$gateway = "172.25.113.1"
-	$dns1 = "8.8.8.8"
-	$dns2 = "8.8.4.4"
-	$networkInterface = "Ethernet"
-	set-ip-static $ip $strMask $gateway $dns1 $dns2 $networkInterface
 }
 
 function Reset-IpStack {
