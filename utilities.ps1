@@ -267,7 +267,7 @@ function Write-Tabular([array]$list, [scriptblock]$highlightExpression, $headerU
 		while ($size -lt $details.maxLength ) {
 			$val += " "
 			$size = getTextSize($val)
-			$tabCount++
+			$tabCount+=1
 		}
 
 		$debugInfo = 'ml:' + $details.maxLength + ',s:' + $size + ',fr:' + [System.Math]::Round($factorRaw, 2) + ',i:' + $inv + ',m:' + $maxTabs + ',t:' + $tabCount + '|';
@@ -289,13 +289,13 @@ function Write-Tabular([array]$list, [scriptblock]$highlightExpression, $headerU
 		$header += $member.Name;
 		$(1..$member.Name.Length) | ForEach-Object { $underline += "=" };
 		if ($tabCount -gt 0 -and $i -ne $members.Length - 1) {
-			$(1..$tabCount) | ForEach-Object { $header += "`t" };
-			$(1..$tabCount) | ForEach-Object { $underline += "========" }
+			$(1..$tabCount) | ForEach-Object { $header += " " };
+			$(1..$tabCount) | ForEach-Object { $underline += "=" }
 		}
 
 		if ($i -ne $members.Length - 1) {
-			$header += "`t|`t";
-			$underline += "`t|`t";
+			$header += " | ";
+			$underline += " | ";
 		}
 	}
 
@@ -329,11 +329,11 @@ function Write-Tabular([array]$list, [scriptblock]$highlightExpression, $headerU
 
 			$line += $val
 			if ($tabCount -gt 0 -and $j -ne $members.Length - 1) {
-				$(1..$tabCount) | ForEach-Object { $line += "`t" };
+				$(1..$tabCount) | ForEach-Object { $line += " " };
 			}
 
 			if ($j -ne $members.Length - 1) {
-				$line += "`t|`t"
+				$line += " | "
 			}
 		}
 
