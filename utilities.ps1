@@ -17,10 +17,10 @@ function Convert-Pdfs2Txt () {
 }
 
 function Convert-ObjectToHash ($asObj) {
-	$result = @{};
+	$result = @{ };
 	$asObj.PSObject.Properties | ForEach-Object {
-        $result[$_.Name] = $_.Value;
-    }
+		$result[$_.Name] = $_.Value;
+	}
 }
 
 function Convert-Htmls2Txt () {
@@ -32,7 +32,7 @@ function Convert-Pdf2Txt () {
 }
 
 # only works for objects (not collections) right now
-function ConvertTo-JsonBetter ([parameter(ValueFromPipeline=$true)]$inputObject, $sortProperties) {
+function ConvertTo-JsonBetter ([parameter(ValueFromPipeline = $true)]$inputObject, $sortProperties) {
 	$json = [System.Text.StringBuilder]::new()
 	$json.AppendLine('{') | Out-Null;
 	function writeJson($obj, $key, $level, $lastProperty) {
@@ -64,16 +64,19 @@ function ConvertTo-JsonBetter ([parameter(ValueFromPipeline=$true)]$inputObject,
 			writeTab
 			if (-not $lastProperty) {
 				$json.AppendLine('},') | Out-Null;
-			} else {
+			}
+			else {
 				$json.AppendLine('}') | Out-Null;
 			}
-		} else {
+		}
+		else {
 			$json.Append('": "') | Out-Null;
 			$json.Append($value) | Out-Null;
 			$json.Append('"') | Out-Null;
 			if (-not $lastProperty) {
 				$json.AppendLine(',') | Out-Null;
-			} else {
+			}
+			else {
 				$json.AppendLine() | Out-Null;
 			}
 		}
@@ -89,7 +92,7 @@ function ConvertTo-JsonBetter ([parameter(ValueFromPipeline=$true)]$inputObject,
 		writeJson -obj $inputObject -key $property.Name -level 1 -lastProperty ($i -eq $properties.Count - 1);
 	}
 
-	$json.AppendLine('}') | Out-Null;
+	$json.Append('}') | Out-Null;
 
 	return $json.ToString();
 }
@@ -110,7 +113,7 @@ function Get-Randomizer () {
 function Get-RandomText ($length = 10, [switch]$alphaNumeric = $false, [switch]$numeric = $false, [switch]$alpha = $false) {
 	$text = '';
 	$nonAlphaNumeric = @(
-		58,59,60,61,62,63,64,91,92,93,94,95,96
+		58, 59, 60, 61, 62, 63, 64, 91, 92, 93, 94, 95, 96
 	);
 
 	for ($i = 0; $i -lt $length; $i++) {
@@ -119,10 +122,12 @@ function Get-RandomText ($length = 10, [switch]$alphaNumeric = $false, [switch]$
 		if ($alphaNumeric) {
 			$start = 48;
 			$end = 122;
-		} elseif ($numeric) {
+		}
+		elseif ($numeric) {
 			$start = 48;
 			$end = 57;
-		} elseif ($alpha) {
+		}
+		elseif ($alpha) {
 			$start = 65;
 			$end = 122;
 		}
@@ -158,16 +163,17 @@ function Kill-Unessential () {
 		else {
 			try {
 				Get-Process $_.name -EA SilentlyContinue | Stop-Process -Force
-			} catch {}
+			}
+			catch { }
 		}
 	}
 }
 
 function Kill-NonDefault () {
 	$defaultProcesses = Get-Content "$HOME\custom-scripts\default-processes.txt";
-	$processes = Get-Process | Where-Object {-not $defaultProcesses.Contains($_.Name)}
+	$processes = Get-Process | Where-Object { -not $defaultProcesses.Contains($_.Name) }
 	$defaultServices = Get-Content "$HOME\custom-scripts\default-services.txt";
-	$services = Get-Service | Where-Object {-not $defaultServices.Contains($_.Name)}
+	$services = Get-Service | Where-Object { -not $defaultServices.Contains($_.Name) }
 	$services | ForEach-Object {
 		Write-Host $('Stopping service "' + $_.Name + '".');
 		Get-Service $_.Name | Stop-Service -Force;
@@ -181,7 +187,7 @@ function Kill-NonDefault () {
 
 function Destroy-SearchUI {
 	Get-Process SearchUI | Stop-Process
-  Move-Item "C:\Windows\SystemApps\Microsoft.Windows.Cortana_cw5n1h2txyewy\" "C:\Windows\SystemApps\Microsoft.Windows.Cortana_cw5n1h2txyewy.bak" -Force
+	Move-Item "C:\Windows\SystemApps\Microsoft.Windows.Cortana_cw5n1h2txyewy\" "C:\Windows\SystemApps\Microsoft.Windows.Cortana_cw5n1h2txyewy.bak" -Force
 }
 
 function Kill-Vmware {
@@ -218,7 +224,7 @@ function Start-Purple ($title) {
 
 function Write-Tabular([array]$list, [scriptblock]$highlightExpression, $headerUnderlineColor, $highlightColor, $debug = $false) {
 	$first = $list[0];
-    $members = $first | Get-Member | Where-Object { $_.MemberType -ne 'Method' };
+	$members = $first | Get-Member | Where-Object { $_.MemberType -ne 'Method' };
 
 	if ($null -eq $headerUnderlineColor) {
 		$headerUnderlineColor = 'Blue';
@@ -229,11 +235,11 @@ function Write-Tabular([array]$list, [scriptblock]$highlightExpression, $headerU
 	}
 
 	function getTextSize ($text) {
-		$font = [System.Drawing.Font]::new('Arial', 12, [System.Drawing.FontStyle]::Regular);
+		$font = [System.Drawing.Font]::new('Meslo LG M DZ for Powerline', 16, [System.Drawing.FontStyle]::Regular);
 		return [System.Windows.Forms.TextRenderer]::MeasureText($text, $font).width;
 	}
 
-	$writingDetails = @{};
+	$writingDetails = @{ };
 	for ($i = 0; $i -lt $members.Length; $i++) {
 		$member = $members[$i];
 		$writingDetails[$member.Name] = @{
@@ -251,41 +257,35 @@ function Write-Tabular([array]$list, [scriptblock]$highlightExpression, $headerU
 				$writingDetails[$member.Name].maxLength = $size;
 			}
 		}
-    }
+	}
     
-    function get-tabCount([string]$val, $details) {
+	function get-tabCount([string]$val, $details) {
 		$debugInfo = '';
+		$maxTabs = [System.Math]::Floor($details.maxLength / 60);
+		$tabCount = 0
 		$size = getTextSize($val);
-        $factorRaw = $size / $details.maxLength;
-        $factor = [System.Math]::Round($factorRaw * 10) / 10;
-		$inv = 1 - $factorRaw;
-        $tabCount = 0;
-        $maxTabs = [System.Math]::Floor($details.maxLength / 60);
-        if ($size -ne $details.maxLength) {
-			$tabCount = [System.Math]::Round($inv * $maxTabs);
-			if ($maxTabs -eq 2 -and $inv -ge 0.6) {
-				$tabCount = $maxTabs;
-			} elseif ($details.maxLength -eq 74 -and $maxTabs -eq 1) {
-				$tabCount = $maxTabs;
-			}
-        }
+		while ($size -lt $details.maxLength ) {
+			$val += " "
+			$size = getTextSize($val)
+			$tabCount++
+		}
 
-        $debugInfo = 'ml:' + $details.maxLength + ',s:' + $size + ',fr:' + [System.Math]::Round($factorRaw, 2) + ',f:' + [System.Math]::Round($factor, 2) + ',i:' + $inv + ',m:' + $maxTabs + ',t:' + $tabCount + '|';
+		$debugInfo = 'ml:' + $details.maxLength + ',s:' + $size + ',fr:' + [System.Math]::Round($factorRaw, 2) + ',i:' + $inv + ',m:' + $maxTabs + ',t:' + $tabCount + '|';
+		$result = @{
+			DebugInfo = $debugInfo;
+			TabCount  = $tabCount;
+		}
 
-        $result = @{
-            DebugInfo = $debugInfo;
-            TabCount = $tabCount;
-        }
-        return $result;
-    }
+		return $result;
+	}
 
 	$header = '';
 	$underline = '';
 	for ($i = 0; $i -lt $members.Length; $i++) {
 		$member = $members[$i];
 		$details = $writingDetails[$member.Name];
-        $tabCountResult = get-tabCount -val $member.Name -details $details;
-        $tabCount = $tabCountResult.TabCount;
+		$tabCountResult = get-tabCount -val $member.Name -details $details;
+		$tabCount = $tabCountResult.TabCount;
 		$header += $member.Name;
 		$(1..$member.Name.Length) | ForEach-Object { $underline += "=" };
 		if ($tabCount -gt 0 -and $i -ne $members.Length - 1) {
@@ -314,14 +314,14 @@ function Write-Tabular([array]$list, [scriptblock]$highlightExpression, $headerU
 
 	$list | ForEach-Object {
 		$item = $_;
-        $line = '';
+		$line = '';
 
-        $debugInfo = "--";
+		$debugInfo = "--";
 		for ($j = 0; $j -lt $members.Length; $j++) {
-            $member = $members[$j];
+			$member = $members[$j];
 			$val = $item.PSObject.Properties[$member.Name].Value.ToString();
-            $details = $writingDetails[$member.Name];
-            $tabCountResult = get-tabCount -val $val -details $details;
+			$details = $writingDetails[$member.Name];
+			$tabCountResult = get-tabCount -val $val -details $details;
 			$tabCount = $tabCountResult.TabCount;
 			if ($null -ne $debug -and $debug.PSObject.TypeNames -contains 'System.Array' -and $debug.Contains($j)) {
 				$debugInfo += $tabCountResult.DebugInfo;
@@ -333,8 +333,8 @@ function Write-Tabular([array]$list, [scriptblock]$highlightExpression, $headerU
 			}
 
 			if ($j -ne $members.Length - 1) {
-                $line += "`t|`t"
-            }
+				$line += "`t|`t"
+			}
 		}
 
 		if ($null -ne $highlightExpression -and $($item | &$highlightExpression)) {
@@ -345,20 +345,21 @@ function Write-Tabular([array]$list, [scriptblock]$highlightExpression, $headerU
 				if ($j -ne $lineParts.Length - 1) {
 					Write-Host "|" -NoNewline;
 				}
-            }
+			}
 			
-            if ($debug -ne $false -and $null -ne $debug) {
+			if ($debug -ne $false -and $null -ne $debug) {
 				Write-Host $debugInfo -NoNewline
-            }
+			}
 
 			Write-Host;
-		} else {
+		}
+		else {
 			Write-Host $line -NoNewline
-            if ((-not ($debug -eq $false)) -and $null -ne $debug) {
-                Write-Host $debugInfo -NoNewline
-            }
+			if ((-not ($debug -eq $false)) -and $null -ne $debug) {
+				Write-Host $debugInfo -NoNewline
+			}
 
-            Write-Host
+			Write-Host
 		}
 	}
 }
