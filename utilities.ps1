@@ -63,7 +63,7 @@ function ConvertTo-JsonBetter ([parameter(ValueFromPipeline = $true)]$inputObjec
 			$value = ConvertFrom-HashTable $value;
 		}
 
-		if ($value.GetType().Name -eq 'List`1') {
+		if ($value.GetType().Name -eq 'List`1' -or $value.GetType().Name -eq 'Object[]') {
 			$json.AppendLine('": [') | Out-Null;
 			$level++;
 			for ($i = 0; $i -lt $value.Count; $i++) {
