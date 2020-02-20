@@ -12,6 +12,17 @@ function Search-Registry($search) {
 	Get-ChildItem HKLM: -Recurse -ErrorAction SilentlyContinue | Where-Object { $_.PSPath -like $search }
 }
 
+function ConvertFrom-HashTable($inputObject) {
+	$result = [psobject]::new();
+	$inputObject.Keys | ForEach-Object {
+		$key = $_;
+		$value = $inputObject[$key]
+		$result | Add-Member -NotePropertyName $key -NotePropertyValue $value;
+	}
+
+	return $result;
+}
+
 function Convert-Pdfs2Txt () {
 	Get-ChildItem *.pdf | ForEach-Object { python C:\Python27\Scripts\pdf2txt.py $_.Name | Out-File -Encoding ascii $($_.Name + '.txt') }
 }
@@ -31,7 +42,6 @@ function Convert-Pdf2Txt () {
 	python C:\Python27\Scripts\pdf2txt.py $1 | Out-File -Encoding ascii $($1 + '.txt') 
 }
 
-# only works for objects (not collections) right now
 function ConvertTo-JsonBetter ([parameter(ValueFromPipeline = $true)]$inputObject, $sortProperties) {
 	$json = [System.Text.StringBuilder]::new()
 	$json.AppendLine('{') | Out-Null;
@@ -49,7 +59,46 @@ function ConvertTo-JsonBetter ([parameter(ValueFromPipeline = $true)]$inputObjec
 
 		$json.Append('"') | Out-Null;
 		$json.Append($key) | Out-Null;
-		if ($value.GetType().Name -eq 'PSCustomObject') {
+		if ($value.GetType().Name -eq 'HashTable') {
+			$value = ConvertFrom-HashTable $value;
+		}
+
+		if ($value.GetType().Name -eq 'List`1' -or $value.GetType().Name -eq 'Object[]') {
+			$json.AppendLine('": [') | Out-Null;
+			$level++;
+			for ($i = 0; $i -lt $value.Count; $i++) {
+				writeTab;
+				$json.AppendLine('{') | Out-Null;
+				$obj = $value[$i];
+				$properties = [System.Linq.Enumerable]::ToList($obj.PSObject.Properties);
+				if ($sortProperties) {
+					$properties = $properties | Sort-Object Name
+				}
+
+				for ($j = 0; $j -lt $properties.Count; $j++) {
+					$property = $properties[$j];
+					writeJson -obj $obj -key $property.Name -level ($level + 1) -lastProperty ($j -eq $properties.Count - 1);
+				}
+
+				writeTab;
+				if (-not ($i -eq $value.Count - 1)) {
+					$json.AppendLine('},') | Out-Null;
+				}
+				else {
+					$json.AppendLine('}') | Out-Null;
+				}
+			}
+
+			$level--;
+			writeTab;
+			if (-not $lastProperty) {
+				$json.AppendLine('],') | Out-Null;
+			}
+			else {
+				$json.AppendLine(']') | Out-Null;
+			}
+		}
+		elseif ($value.GetType().Name -eq 'PSCustomObject') {
 			$json.AppendLine('": {') | Out-Null;
 			$properties = [System.Linq.Enumerable]::ToList($value.PSObject.Properties);
 			if ($sortProperties) {
@@ -80,6 +129,10 @@ function ConvertTo-JsonBetter ([parameter(ValueFromPipeline = $true)]$inputObjec
 				$json.AppendLine() | Out-Null;
 			}
 		}
+	}
+
+	if ($inputObject.GetType().Name -eq 'HashTable') {
+		$inputObject = ConvertFrom-HashTable $inputObject
 	}
 
 	$properties = [System.Linq.Enumerable]::ToList($inputObject.PSObject.Properties);
@@ -267,7 +320,7 @@ function Write-Tabular([array]$list, [scriptblock]$highlightExpression, $headerU
 		while ($size -lt $details.maxLength ) {
 			$val += " "
 			$size = getTextSize($val)
-			$tabCount+=1
+			$tabCount += 1
 		}
 
 		$debugInfo = 'ml:' + $details.maxLength + ',s:' + $size + ',fr:' + [System.Math]::Round($factorRaw, 2) + ',i:' + $inv + ',m:' + $maxTabs + ',t:' + $tabCount + '|';
