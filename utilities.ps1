@@ -59,76 +59,71 @@ function ConvertTo-JsonBetter ([parameter(ValueFromPipeline = $true)]$inputObjec
 
 		$json.Append('"') | Out-Null;
 		$json.Append($key) | Out-Null;
-		if ($value.GetType().Name -eq 'HashTable') {
-			$value = ConvertFrom-HashTable $value;
-		}
+		function writeJsonObject ($level, $value, $inList, $lastProperty) {
+			if ($value.GetType().Name -eq 'HashTable') {
+				$value = ConvertFrom-HashTable $value;
+			}
 
-		if ($value.GetType().Name -eq 'List`1' -or $value.GetType().Name -eq 'Object[]') {
-			$json.AppendLine('": [') | Out-Null;
-			$level++;
-			for ($i = 0; $i -lt $value.Count; $i++) {
+			if ($value.GetType().Name -eq 'List`1' -or $value.GetType().Name -eq 'Object[]') {
+				$json.AppendLine('": [') | Out-Null;
+				for ($i = 0; $i -lt $value.Count; $i++) {
+					writeJsonObject -level ($level + 1) -value $value[$i] -inList $true -lastProperty ($i -eq $value.Count - 1)
+				}
+
 				writeTab;
-				$json.AppendLine('{') | Out-Null;
-				$obj = $value[$i];
-				$properties = [System.Linq.Enumerable]::ToList($obj.PSObject.Properties);
+				if (-not $lastProperty) {
+					$json.AppendLine('],') | Out-Null;
+				}
+				else {
+					$json.AppendLine(']') | Out-Null;
+				}
+			}
+			elseif ($value.GetType().Name -eq 'PSCustomObject') {
+				if ($inList) {
+					writeTab
+					$json.AppendLine('{') | Out-Null;
+				} else {
+					$json.AppendLine('": {') | Out-Null;
+				}
+
+				$properties = [System.Linq.Enumerable]::ToList($value.PSObject.Properties);
 				if ($sortProperties) {
 					$properties = $properties | Sort-Object Name
 				}
 
-				for ($j = 0; $j -lt $properties.Count; $j++) {
-					$property = $properties[$j];
-					writeJson -obj $obj -key $property.Name -level ($level + 1) -lastProperty ($j -eq $properties.Count - 1);
+				for ($i = 0; $i -lt $properties.Count; $i++) {
+					$property = $properties[$i];
+					writeJson -obj $value -key $property.Name -level ($level + 1) -lastProperty ($i -eq $properties.Count - 1);
 				}
 
-				writeTab;
-				if (-not ($i -eq $value.Count - 1)) {
+				writeTab
+				if (-not $lastProperty) {
 					$json.AppendLine('},') | Out-Null;
 				}
 				else {
 					$json.AppendLine('}') | Out-Null;
 				}
 			}
-
-			$level--;
-			writeTab;
-			if (-not $lastProperty) {
-				$json.AppendLine('],') | Out-Null;
-			}
 			else {
-				$json.AppendLine(']') | Out-Null;
+				if ($inList) {
+					writeTab
+					$json.Append('"') | Out-Null;
+				} else {
+					$json.Append('": "') | Out-Null;
+				}
+
+				$json.Append($value) | Out-Null;
+				$json.Append('"') | Out-Null;
+				if (-not $lastProperty) {
+					$json.AppendLine(',') | Out-Null;
+				}
+				else {
+					$json.AppendLine() | Out-Null;
+				}
 			}
 		}
-		elseif ($value.GetType().Name -eq 'PSCustomObject') {
-			$json.AppendLine('": {') | Out-Null;
-			$properties = [System.Linq.Enumerable]::ToList($value.PSObject.Properties);
-			if ($sortProperties) {
-				$properties = $properties | Sort-Object Name
-			}
 
-			for ($i = 0; $i -lt $properties.Count; $i++) {
-				$property = $properties[$i];
-				writeJson -obj $value -key $property.Name -level ($level + 1) -lastProperty ($i -eq $properties.Count - 1);
-			}
-
-			writeTab
-			if (-not $lastProperty) {
-				$json.AppendLine('},') | Out-Null;
-			}
-			else {
-				$json.AppendLine('}') | Out-Null;
-			}
-		}
-		else {
-			$json.Append('": "') | Out-Null;
-			$json.Append($value) | Out-Null;
-			$json.Append('"') | Out-Null;
-			if (-not $lastProperty) {
-				$json.AppendLine(',') | Out-Null;
-			}
-			else {
-				$json.AppendLine() | Out-Null;
-			}
-		}
+		writeJsonObject -level $level -value $value -inList $false -lastProperty $lastProperty
 	}
 
 	if ($inputObject.GetType().Name -eq 'HashTable') {
