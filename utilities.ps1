@@ -145,6 +145,17 @@ function ConvertTo-JsonBetter ([parameter(ValueFromPipeline = $true)]$inputObjec
 	return $json.ToString();
 }
 
+function Get-Colors () {
+	[Enum]::GetValues([System.ConsoleColor]) | foreach {
+		$colorName = $_;
+		if ($colorName.ToString().StartsWith('Dark') -and $colorName.ToString() -ne 'DarkYellow') {
+			Write-Host -BackgroundColor $colorName $colorName
+		} else {
+			Write-Host -BackgroundColor $colorName -ForegroundColor Black $colorName
+		}
+	}
+}
+
 function Get-EmojiShrug () {
 	Get-Content $home\shrug.txt
 }
@@ -270,7 +281,7 @@ function Start-Purple ($title) {
 	ConEmu.exe -Icon "C:\tools\Cmder\icons\cmder_purple.ico" -Title ($title) -run "{Powershell 5 as Admin}"
 }
 
-function Write-Tabular([array]$list, [scriptblock]$highlightExpression, $headerUnderlineColor, $highlightColor, $debug = $false) {
+function Write-Tabular([array]$list, [scriptblock]$highlightExpression, $headerUnderlineColor, $highlightColor, $alternateRowColor=$false, $debug = $false) {
 	$first = $list[0];
 	$members = $first | Get-Member | Where-Object { $_.MemberType -ne 'Method' };
 
@@ -360,6 +371,7 @@ function Write-Tabular([array]$list, [scriptblock]$highlightExpression, $headerU
 	# Adds a new line after the underline section of header
 	Write-Host
 
+	$i = 0;
 	$list | ForEach-Object {
 		$item = $_;
 		$line = '';
@@ -376,7 +388,7 @@ function Write-Tabular([array]$list, [scriptblock]$highlightExpression, $headerU
 			}
 
 			$line += $val
-			if ($tabCount -gt 0 -and $j -ne $members.Length - 1) {
+			if ($tabCount -gt 0) {
 				$(1..$tabCount) | ForEach-Object { $line += " " };
 			}
 
@@ -400,8 +412,22 @@ function Write-Tabular([array]$list, [scriptblock]$highlightExpression, $headerU
 			}
 
 			Write-Host;
-		}
-		else {
+		} elseif ($true -eq $alternateRowColor -and $i % 2 -eq 0) {
+			$lineParts = $line.Split('|');
+			for ($j = 0; $j -lt $lineParts.Length; $j++) {
+				$part = $lineParts[$j];
+				Write-Host $part -NoNewline -BackgroundColor DarkBlue -ForegroundColor White
+				if ($j -ne $lineParts.Length - 1) {
+					Write-Host "|" -NoNewline;
+				}
+			}
+
+			if ((-not ($debug -eq $false)) -and $null -ne $debug) {
+				Write-Host $debugInfo -NoNewline
+			}
+
+			Write-Host
+		} else {
 			Write-Host $line -NoNewline
 			if ((-not ($debug -eq $false)) -and $null -ne $debug) {
 				Write-Host $debugInfo -NoNewline
@@ -409,5 +435,7 @@ function Write-Tabular([array]$list, [scriptblock]$highlightExpression, $headerU
 
 			Write-Host
 		}
+
+		$i++
 	}
 }
