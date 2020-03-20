@@ -401,7 +401,12 @@ function Write-Tabular([array]$list, [scriptblock]$highlightExpression, $headerU
 			$lineParts = $line.Split('|');
 			for ($j = 0; $j -lt $lineParts.Length; $j++) {
 				$part = $lineParts[$j];
-				Write-Host -ForegroundColor $highlightColor $part -NoNewline;
+				if ($true -eq $alternateRowColor -and $i % 2 -eq 0) {
+					Write-Host -BackgroundColor White -ForegroundColor $highlightColor $part -NoNewline;
+				} else {
+					Write-Host -ForegroundColor $highlightColor $part -NoNewline;
+				}
+
 				if ($j -ne $lineParts.Length - 1) {
 					Write-Host "|" -NoNewline;
 				}
