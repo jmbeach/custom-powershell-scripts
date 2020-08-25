@@ -3,7 +3,17 @@ function Get-GitCommitsAheadBehindDevelop($gitDir, $branchLeft, $branchRight) {
         $branchRight = 'origin/develop'
     }
 
-    $commitsDifference = (git --git-dir $gitDir rev-list --left-right --count "$branchRight...$branchLeft").Split("`t");
+    $output = git --git-dir $gitDir rev-list --left-right --count "$branchRight...$branchLeft"
+
+    # if either branch doesn't exist, this happens
+    if ($null -eq $output) {
+        $result = [psobject]::new();
+        $result | Add-Member -NotePropertyName 'commitsAhead' -NotePropertyValue 0;
+        $result | Add-Member -NotePropertyName 'commitsBehind' -NotePropertyValue 0;
+        return $result;
+    }
+
+    $commitsDifference = $output.Split("`t");
     $commitsAhead = $commitsDifference[1];
     $commitsBehind = $commitsDifference[0];
     $result = [psobject]::new();
