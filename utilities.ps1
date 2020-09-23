@@ -229,16 +229,23 @@ function Kill-Unessential () {
 }
 
 function Kill-NonDefault () {
-	$defaultProcesses = Get-Content "$HOME\custom-scripts\default-processes.txt";
-	$processes = Get-Process | Where-Object { -not $defaultProcesses.Contains($_.Name) }
-	$defaultServices = Get-Content "$HOME\custom-scripts\default-services.txt";
-	$services = Get-Service | Where-Object { -not $defaultServices.Contains($_.Name) }
+	$defaultProcesses = Get-Content "$HOME\custom-scripts\default-processes.txt" | ForEach-Object { $_.ToUpper() };
+
+	$processes = Get-Process | Sort-Object Name | Get-Unique | Where-Object { -not $defaultProcesses.Contains($_.Name.ToUpper()) }
+	$defaultServices = Get-Content "$HOME\custom-scripts\default-services.txt" | ForEach-Object { $_.ToUpper() };
+	$services = Get-Service | Where-Object { -not $defaultServices.Contains($_.Name.ToUpper()) }
 	$services | ForEach-Object {
 		Write-Host $('Stopping service "' + $_.Name + '".');
 		Get-Service $_.Name | Stop-Service -Force;
 	}
 
 	$processes | ForEach-Object {
+		[string]$command = Get-CimInstance Win32_Process -Filter "name = '$($_.Name).exe'" | Select-Object CommandLine 
+		if ($command.ToUpper().Contains('BITDEFENDER')) {
+			Write-Host "Skipping process $($_.Name) because it is part of bit defender";
+			return;
+		}
+
 		Write-Host $('Stopping process "' + $_.Name + '".');
 		Get-Process $_.Name | Stop-Process -Force;
 	}
