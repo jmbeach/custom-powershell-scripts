@@ -19,5 +19,5 @@ function Get-JoplinNoteSearch(
   [parameter(Mandatory = $true)][string]$apiKey,
   [parameter(Mandatory = $true)][string]$query) {
   $fullUrl = "$baseUrl/search?token=$apiKey&query=$query";
-  return Invoke-WebRequest -Uri $fullUrl -Method Get;
+  return (Invoke-WebRequest -Uri $fullUrl -Method Get).Content | ConvertFrom-Json;
 }
