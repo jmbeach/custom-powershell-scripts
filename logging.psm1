@@ -5,34 +5,6 @@ class IWriteLogParams {
   [ConsoleColor]$ForegroundColor
   [ConsoleColor]$BackgroundColor
   [bool]$NoNewLine
-  IWriteLogParams([object]$object) {
-    $this.Object = $object;
-    $this.ForegroundColor = [ConsoleColor]::White;
-  }
-
-  IWriteLogParams([object]$object, [bool]$noNewLine) {
-    $this.Object = $object;
-    $this.NoNewLine = $noNewLine;
-    $this.ForegroundColor = [ConsoleColor]::White;
-  }
-
-  IWriteLogParams([object]$object, [ConsoleColor]$foreground) {
-    $this.Object = $object;
-    $this.ForegroundColor = $foreground;
-  }
-
-  IWriteLogParams([object]$object, [ConsoleColor]$foreground, [ConsoleColor]$background) {
-    $this.Object = $object;
-    $this.ForegroundColor = $foreground;
-    $this.BackgroundColor = $background;
-  }
-
-  IWriteLogParams([object]$object, [ConsoleColor]$foreground, [ConsoleColor]$background, [bool]$noNewLine) {
-    $this.Object = $object;
-    $this.ForegroundColor = $foreground;
-    $this.BackgroundColor = $background;
-    $this.NoNewLine = $noNewLine;
-  }
 }
 class ILogger {
   [void] WriteLog([IWriteLogParams]$logParams) {}
@@ -43,6 +15,10 @@ class ConsoleLogger : ILogger {
     if ($null -eq $logParams) {
       Write-Host;
       return;
+    }
+
+    if ($null -eq $logParams.ForegroundColor) {
+      $logParams.ForegroundColor = [ConsoleColor]::White;
     }
 
     [scriptBlock]$doWrite = {
