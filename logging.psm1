@@ -5,6 +5,9 @@ class IWriteLogParams {
   [ConsoleColor]$ForegroundColor
   [ConsoleColor]$BackgroundColor
   [bool]$NoNewLine
+  IWriteLogParams() {
+    $this.ForegroundColor = [ConsoleColor]::White;
+  }
 }
 class ILogger {
   [void] WriteLog([IWriteLogParams]$logParams) {}
@@ -15,10 +18,6 @@ class ConsoleLogger : ILogger {
     if ($null -eq $logParams) {
       Write-Host;
       return;
-    }
-
-    if ($null -eq $logParams.ForegroundColor) {
-      $logParams.ForegroundColor = [ConsoleColor]::White;
     }
 
     [scriptBlock]$doWrite = {
