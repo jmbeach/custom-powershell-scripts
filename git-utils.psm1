@@ -1,4 +1,4 @@
-function Get-GitCommitsAheadBehindDevelop($gitDir, $branchLeft, $branchRight) {
+function Get-GitCommitsAheadBehind($gitDir, $branchLeft, $branchRight) {
     if ($null -eq $branchRight) {
         $branchRight = 'origin/develop'
     }
