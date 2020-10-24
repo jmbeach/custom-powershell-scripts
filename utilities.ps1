@@ -42,111 +42,8 @@ function Convert-Pdf2Txt () {
 	python C:\Python27\Scripts\pdf2txt.py $1 | Out-File -Encoding ascii $($1 + '.txt') 
 }
 
-function ConvertTo-JsonBetter ([parameter(ValueFromPipeline = $true)]$inputObject, $sortProperties) {
-	$json = [System.Text.StringBuilder]::new()
-	$json.AppendLine('{') | Out-Null;
-	function writeJson($obj, $key, $level, $lastProperty) {
-		function writeTab() {
-			for ($i = 0; $i -lt $level; $i++) {
-				$json.Append('  ') | Out-Null;
-			}
-		}
-		
-		writeTab
-
-		$value = $obj.PSObject.Properties[$key].Value;
-		
-
-		$json.Append('"') | Out-Null;
-		$json.Append($key) | Out-Null;
-		function writeJsonObject ($level, $value, $inList, $lastProperty) {
-			if ($value.GetType().Name -eq 'HashTable') {
-				$value = ConvertFrom-HashTable $value;
-			}
-
-			if ($value.GetType().Name -eq 'List`1' -or $value.GetType().Name -eq 'Object[]') {
-				$json.AppendLine('": [') | Out-Null;
-				for ($i = 0; $i -lt $value.Count; $i++) {
-					writeJsonObject -level ($level + 1) -value $value[$i] -inList $true -lastProperty ($i -eq $value.Count - 1)
-				}
-
-				writeTab;
-				if (-not $lastProperty) {
-					$json.AppendLine('],') | Out-Null;
-				}
-				else {
-					$json.AppendLine(']') | Out-Null;
-				}
-			}
-			elseif ($value.GetType().Name -eq 'PSCustomObject') {
-				if ($inList) {
-					writeTab
-					$json.AppendLine('{') | Out-Null;
-				} else {
-					$json.AppendLine('": {') | Out-Null;
-				}
-
-				$properties = [System.Linq.Enumerable]::ToList($value.PSObject.Properties);
-				if ($sortProperties) {
-					$properties = $properties | Sort-Object Name
-				}
-
-				for ($i = 0; $i -lt $properties.Count; $i++) {
-					$property = $properties[$i];
-					writeJson -obj $value -key $property.Name -level ($level + 1) -lastProperty ($i -eq $properties.Count - 1);
-				}
-
-				writeTab
-				if (-not $lastProperty) {
-					$json.AppendLine('},') | Out-Null;
-				}
-				else {
-					$json.AppendLine('}') | Out-Null;
-				}
-			}
-			else {
-				if ($inList) {
-					writeTab
-					$json.Append('"') | Out-Null;
-				} else {
-					$json.Append('": "') | Out-Null;
-				}
-
-				$json.Append($value) | Out-Null;
-				$json.Append('"') | Out-Null;
-				if (-not $lastProperty) {
-					$json.AppendLine(',') | Out-Null;
-				}
-				else {
-					$json.AppendLine() | Out-Null;
-				}
-			}
-		}
-
-		writeJsonObject -level $level -value $value -inList $false -lastProperty $lastProperty
-	}
-
-	if ($inputObject.GetType().Name -eq 'HashTable') {
-		$inputObject = ConvertFrom-HashTable $inputObject
-	}
-
-	$properties = [System.Linq.Enumerable]::ToList($inputObject.PSObject.Properties);
-	if ($sortProperties) {
-		$properties = $properties | Sort-Object Name;
-	}
-
-	for ($i = 0; $i -lt $properties.Count; $i++) {
-		$property = $properties[$i];
-		writeJson -obj $inputObject -key $property.Name -level 1 -lastProperty ($i -eq $properties.Count - 1);
-	}
-
-	$json.Append('}') | Out-Null;
-
-	return $json.ToString();
-}
-
 function Get-Colors () {
-	[Enum]::GetValues([System.ConsoleColor]) | foreach {
+	[Enum]::GetValues([System.ConsoleColor]) | ForEach-Object {
 		$colorName = $_;
 		if ($colorName.ToString().StartsWith('Dark') -and $colorName.ToString() -ne 'DarkYellow') {
 			Write-Host -BackgroundColor $colorName $colorName
@@ -229,16 +126,23 @@ function Kill-Unessential () {
 }
 
 function Kill-NonDefault () {
-	$defaultProcesses = Get-Content "$HOME\custom-scripts\default-processes.txt";
-	$processes = Get-Process | Where-Object { -not $defaultProcesses.Contains($_.Name) }
-	$defaultServices = Get-Content "$HOME\custom-scripts\default-services.txt";
-	$services = Get-Service | Where-Object { -not $defaultServices.Contains($_.Name) }
+	$defaultProcesses = Get-Content "$HOME\custom-scripts\default-processes.txt" | ForEach-Object { $_.ToUpper() };
+
+	$processes = Get-Process | Sort-Object Name | Get-Unique | Where-Object { -not $defaultProcesses.Contains($_.Name.ToUpper()) }
+	$defaultServices = Get-Content "$HOME\custom-scripts\default-services.txt" | ForEach-Object { $_.ToUpper() };
+	$services = Get-Service | Where-Object { -not $defaultServices.Contains($_.Name.ToUpper()) }
 	$services | ForEach-Object {
 		Write-Host $('Stopping service "' + $_.Name + '".');
 		Get-Service $_.Name | Stop-Service -Force;
 	}
 
 	$processes | ForEach-Object {
+		[string]$command = Get-CimInstance Win32_Process -Filter "name = '$($_.Name).exe'" | Select-Object CommandLine 
+		if ($command.ToUpper().Contains('BITDEFENDER')) {
+			Write-Host "Skipping process $($_.Name) because it is part of bit defender";
+			return;
+		}
+
 		Write-Host $('Stopping process "' + $_.Name + '".');
 		Get-Process $_.Name | Stop-Process -Force;
 	}
