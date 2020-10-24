@@ -22,15 +22,15 @@ function Get-SshHosts() {
 
       $activeHost = [psobject]::new();
 
-      $activeHost | Add-Member -NotePropertyName 'name' -NotePropertyValue $line.Split('Host ')[1];
-    } elseif ($line.Trim().StartsWith('User')) {
-      $activeHost | Add-Member -NotePropertyName 'user' -NotePropertyValue $line.Trim().Split('User ')[1];
-    } elseif ($line.Trim().StartsWith('Hostname')) {
-      $activeHost | Add-Member -NotePropertyName 'hostname' -NotePropertyValue $line.Trim().Split('Hostname ')[1];
-    } elseif ($line.Trim().StartsWith('Port')) {
-      $activeHost | Add-Member -NotePropertyName 'port' -NotePropertyValue $line.Trim().Split('Port ')[1];
-    } elseif ($line.Trim().StartsWith('IdentityFile')) {
-      $activeHost | Add-Member -NotePropertyName 'identityFile' -NotePropertyValue $line.Trim().Split('IdentityFile ')[1];
+      $activeHost | Add-Member -NotePropertyName 'name' -NotePropertyValue ($line.Trim() -split 'Host ')[1];
+    } elseif ($line.Trim().StartsWith('User', 'CurrentCultureIgnoreCase')) {
+      $activeHost | Add-Member -NotePropertyName 'user' -NotePropertyValue ($line.Trim() -split 'User ')[1];
+    } elseif ($line.Trim().StartsWith('Hostname', 'CurrentCultureIgnoreCase')) {
+      $activeHost | Add-Member -NotePropertyName 'hostname' -NotePropertyValue ($line.Trim() -split 'Hostname ')[1];
+    } elseif ($line.Trim().StartsWith('Port', 'CurrentCultureIgnoreCase')) {
+      $activeHost | Add-Member -NotePropertyName 'port' -NotePropertyValue ($line.Trim() -split 'Port ')[1];
+    } elseif ($line.Trim().StartsWith('IdentityFile', 'CurrentCultureIgnoreCase')) {
+      $activeHost | Add-Member -NotePropertyName 'identityFile' -NotePropertyValue ($line.Trim() -split 'IdentityFile ')[1];
     }
   }
 
