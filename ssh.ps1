@@ -8,8 +8,12 @@ $sshCompleter = {
   }
 }
 
-function Get-SshHosts() {
-  $sshConfig = Get-Content "$home/.ssh/config";
+function Get-SshHosts($sshFile) {
+  if ($null -eq $sshFile) {
+    $sshFile = "$home/.ssh/config";
+  }
+
+  $sshConfig = Get-Content $sshFile;
   $result = [System.Collections.Generic.List[object]]::new();
   $activeHost = $null;
   $sshConfig | ForEach-Object {
