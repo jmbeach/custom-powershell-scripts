@@ -67,3 +67,8 @@ function Convert-HtmlToPlainText([string] $content) {
 function Get-LockingProcess($file) {
 	handle | select-string $file -Context 3
 }
+
+function Get-Base64StringFromFile($file) {
+	$bytes = [System.IO.File]::ReadAllBytes($file);
+	return [System.Convert]::ToBase64String($bytes);
+}

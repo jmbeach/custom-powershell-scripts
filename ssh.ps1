@@ -55,3 +55,14 @@ function Complete-HostName($word) {
 }
 
 Register-ArgumentCompleter -Native -CommandName ssh -ScriptBlock $sshCompleter;
+
+# Making an exception for bad naming here because it's an alias for the actual unix command
+# Inspired by https://www.chrisjhart.com/Windows-10-ssh-copy-id/
+function Ssh-Copy-Id($i, $target) {
+  if (![System.IO.File]::Exists($i)) {
+    Write-Host -ForegroundColor Red -Object "Input file doesn't exist.";
+    return;
+  }
+
+  Get-Content $i | ssh $target "cat >> .ssh/authorized_keys";
+}
