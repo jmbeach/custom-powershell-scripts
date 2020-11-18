@@ -42,3 +42,17 @@ function Get-JiraActivityFeed(
   };
   return [xml](Invoke-WebRequest -Uri $fullUrl -Headers $headers).Content;
 }
+
+function Get-ConfluenceSearch(
+  [parameter(Mandatory = $true)][string]$baseUrl,
+  [parameter(Mandatory = $true)][string]$userName,
+  [parameter(Mandatory = $true)][string]$apiKey,
+  [parameter(Mandatory = $true)][string]$cql) {
+  $fullUrl = "$baseUrl/rest/api/content/search?cql=$cql"
+  $headers = @{
+    authorization = _buildBasicAuth $userName $apiKey;
+    accept        = 'application/json'
+  };
+
+  return (Invoke-WebRequest -Uri $fullUrl -Headers $headers).Content | ConvertFrom-Json;
+}
