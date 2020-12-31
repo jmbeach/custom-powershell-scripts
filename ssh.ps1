@@ -78,25 +78,27 @@ class SshHostParser {
   }
 }
 
-function ConvertFrom-SshConfigFile (
-  <#
-   .PARAMETER sshFile
-     Path to ssh config file.
-     If null, defaults to ~/.ssh/config
-  #>
-  $sshFile
-) {
+function ConvertFrom-SshConfigFile {
   <#
     .SYNOPSIS
       Converts an ssh config file into a list of powershell objects;
       each representing a host in the config.
     
     .OUTPUTS
-      Returns a list of powershell objects;
-      each representing a host in the config.
-      Null if no sshFile specified and the default path for one does not exist.
+      Returns an object representing an ssh config file.
   #>
-  if ($null -eq $sshFile) {
+
+  [CmdletBinding()]
+  param (
+    <#
+     .PARAMETER sshFile
+       Path to ssh config file.
+       If null, defaults to ~/.ssh/config
+    #>
+    [Parameter(ValueFromPipeline)][string] $sshFile
+  )
+
+  if ($null -eq $sshFile -or $sshFile -eq [string]::Empty) {
     $sshFile = "$home/.ssh/config";
   }
 
@@ -115,10 +117,10 @@ function ConvertFrom-SshConfigFile (
     if ($hostParser.isHostLine()) {
       if ($null -eq $result.Hosts) {
         $result.Hosts = [System.Collections.Generic.List[SshHost]]::new();
-        }
+      }
 
-        $result.Hosts.Add($hostParser.parse($line));
-        continue;
+      $result.Hosts.Add($hostParser.parse($line));
+      continue;
     }
 
     # if it's not a host line, it's a global setting
@@ -156,23 +158,47 @@ function _Complete-HostName() {
 
 Register-ArgumentCompleter -Native -CommandName ssh -ScriptBlock $sshCompleter;
 
-# Inspired by https://www.chrisjhart.com/Windows-10-ssh-copy-id/
+<#
+  .SYNOPSIS
+    A Powershell replacement for the command line utility ssh-copy-id.
+
+  .DESCRIPTION
+    Inspired by https://www.chrisjhart.com/Windows-10-ssh-copy-id/.
+    Copies your public ssh key to a target host
+
+  .EXAMPLE
+    Ssh-Copy-Id -target MyComputer
+#>
 function Ssh-Copy-Id {
   # Making an exception for bad naming here because it's an alias for the actual unix command
   [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseApprovedVerbs', '', Scope = 'Function')]
   [CmdletBinding()]
   param (
+    <#
+     .PARAMETER target
+       Host to copy the key to.
+    #>
     [Parameter(Required = $true)][string] $target,
     <#
-       .PARAMETER identityFile
-         Name/path to the identity file you want to copy to the host.
-         Defaults to ~/.ssh/id_rsa.pub
-      #>
+     .PARAMETER user
+       Optionally specify the user to connect as.
+    #>
+    [Parameter(Required = $false)][string] $user,
+    <#
+     .PARAMETER identityFile
+       Name/path to the identity file you want to copy to the host.
+       Defaults to ~/.ssh/id_rsa.pub (or the one specified in your ssh config file)
+    #>
     [Parameter(Required = $false)][string] $identityFile
   )
 
+  $config = ConvertFrom-SshConfigFile;
+
   if ($null -eq $identityFile) {
-    $identityFile = "$($env:USERPROFILE)\.ssh\id_rsa.pub"
+    $identityFile = $config.IdentityFile;
+    if ($null -eq $identityFile) {
+      $identityFile = "$($env:USERPROFILE)\.ssh\id_rsa.pub"
+    }
   }
 
   if (!$identityFile.EndsWith('.pub')) {
@@ -184,5 +210,10 @@ function Ssh-Copy-Id {
     return;
   }
 
+  if ($null -ne $user) {
+    $target = "$user@$target";
+  }
+
   Get-Content $identityFile | ssh $target "cat >> .ssh/authorized_keys";
-}
+}
+
