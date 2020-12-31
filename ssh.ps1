@@ -282,6 +282,10 @@ function ConvertTo-SshConfig {
     $text += "Host $($hostEntry.Name)`n"
     $properties | Where-Object {$_.Name -ne 'Name'} | ForEach-Object {
       $prop = $_;
+      if ($null -eq $prop.Value) {
+        return;
+      }
+      
       $text += "  $($prop.Name) $($prop.Value)`n";
     }
 
