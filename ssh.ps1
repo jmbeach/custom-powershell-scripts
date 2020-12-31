@@ -12,12 +12,13 @@ class SshHost {
   [string]$Name;
   [string]$User;
   [string]$HostName;
-  [int]$Port;
+  [System.Nullable[int]]$Port;
   [string]$IdentityFile
 }
 
 class SshConfig {
-
+  [System.Collections.Generic.List[SshHost]]$Hosts;
+  [string]$IdentityFile;
 }
 
 class SshHostParser {
@@ -27,7 +28,7 @@ class SshHostParser {
     $this.reader = $reader;
   }
 
-  [boolean]_isHostLine() {
+  [boolean]isHostLine() {
     # space = 32. If the line starts with whitespace, it's a host property
     return 32 -eq $this.reader.Peek();
   }
@@ -35,7 +36,7 @@ class SshHostParser {
   [SshHost]parse ([string]$line) {
     $sshHost = New-Object -TypeName SshHost -Property @{ Name = ($line.Trim() -split 'Host ')[1]; };
 
-    while ($this._isHostLine()) {
+    while ($this.isHostLine()) {
       $line = $this.reader.ReadLine();
       $props = $sshHost.PSObject.Properties
       $props | ForEach-Object {
@@ -45,7 +46,7 @@ class SshHostParser {
         }
 
         $val = ($line.Trim() -split $prop.Name)[1].Trim();
-        $typeName = $prop.TypeNameOfValue.ToLower().Replace('system.', '');
+        $typeName = [System.Text.RegularExpressions.RegEx]::new('(?:string|int32)').Matches($prop.TypeNameOfValue.ToLower())[0].Value;
         switch ($typeName) {
           'string' { 
             $prop.Value = $val;
@@ -77,9 +78,6 @@ function ConvertFrom-SshConfigFile (
       Converts an ssh config file into a list of powershell objects;
       each representing a host in the config.
     
-    .DESCRIPTION
-      Converts an ssh config file into a list of powershell objects
-    
     .OUTPUTS
       Returns a list of powershell objects;
       each representing a host in the config.
@@ -90,10 +88,10 @@ function ConvertFrom-SshConfigFile (
   }
 
   if (-not (Test-Path $sshFile)) {
-    return $null
+    throw "No ssh file found. Tried to use `"$sshFile`"."
   }
 
-  $result = [System.Collections.Generic.List[SshHost]]::new();
+  $result = [SshConfig]::new()
 
   # looping over the lines in the config file to incrementally build hosts/properties
   $reader = [System.IO.StreamReader]::new($sshFile);
@@ -102,7 +100,16 @@ function ConvertFrom-SshConfigFile (
   while ($null -ne ($line = $reader.ReadLine())) {
     # if the line doesn't start with whitespace, it's a host or entity
     if ($line.TrimEnd() -eq $line.Trim() -and $line.Length -gt 0) {
-      $result.Add($hostParser.parse($line));
+      if ($hostParser.isHostLine()) {
+        if ($null -eq $result.Hosts) {
+          $result.Hosts = [System.Collections.Generic.List[SshHost]]::new();
+        }
+
+        $result.Hosts.Add($hostParser.parse($line));
+        continue;
+      }
+
+      # if it's not a host line, it's a global setting
     }
   }
 
