@@ -72,3 +72,11 @@ function Get-Base64StringFromFile($file) {
 	$bytes = [System.IO.File]::ReadAllBytes($file);
 	return [System.Convert]::ToBase64String($bytes);
 }
+
+function Copy-ItemRemote ($filePath, $destination) {
+  # inspired by https://social.technet.microsoft.com/Forums/en-US/64a3d37c-9828-4feb-817a-d28e7a147f25/copy-file-from-local-to-remote?forum=winserverpowershell
+  Invoke-Command -Session $session -ScriptBlock {
+    param($txt)
+    [System.Io.File]::WriteAllText($destination, $txt);
+  } -ArgumentList ([System.IO.File]::ReadAllText($filePath));
+}
