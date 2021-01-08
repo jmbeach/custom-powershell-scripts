@@ -137,7 +137,7 @@ function Copy-ItemRemote {
       [Parameter(Mandatory)][System.Management.Automation.Runspaces.PSSession] $session
   )
   Invoke-Command -Session $session -ScriptBlock {
-    param($txt)
+    param($txt, $destination)
     [System.Io.File]::WriteAllText($destination, $txt);
-  } -ArgumentList ([System.IO.File]::ReadAllText($filePath));
+  } -ArgumentList ([System.IO.File]::ReadAllText($filePath)), $destination;
 }
