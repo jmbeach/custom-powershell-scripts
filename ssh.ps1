@@ -83,9 +83,23 @@ function ConvertFrom-SshConfigFile {
     .SYNOPSIS
       Converts an ssh config file into a list of powershell objects;
       each representing a host in the config.
+
+    .INPUTS
+      A file object from Get-ChildItem or a path to an ssh config file.
     
     .OUTPUTS
       Returns an object representing an ssh config file.
+    
+    .EXAMPLES
+      ConvertFrom-SshConfigFile # Works by itself. Uses default config file
+
+      # or
+
+      Get-ChildItem myConfig | ConvertFrom-SshConfigFile
+
+      # or
+
+      ConvertFrom-SshConfigFile -sshFile myConfig
   #>
 
   [CmdletBinding()]
@@ -215,5 +229,69 @@ function Ssh-Copy-Id {
   }
 
   Get-Content $identityFile | ssh $target "cat >> .ssh/authorized_keys";
+}
+
+function ConvertTo-SshConfig {
+  <#
+    .SYNOPSIS
+      Converts from a SshConfig object to textual ssh config format.
+  
+    .DESCRIPTION
+      Turns the SshConfig object gotten from ConvertFrom-SshConfigFile
+      into a string representation of the ssh config.
+      One of the main benefits of this is that you can programatically
+      make changes to an ssh config and then convert it back to text
+      and overwrite the original file. See the example section.
+  
+    .INPUTS
+      SshConfig instance
+  
+    .OUTPUTS
+      string contents of an ssh config file based on the ssh config
+      object.
+  
+    .EXAMPLE
+      $sshConfigObject | ConvertTo-SshConfig
+
+      #or
+
+      ConvertTo-SshConfig -configObject $sshConfigObject
+  #>
+
+  [CmdletBinding()]
+  param (
+    <#
+     .PARAMETER configObject
+       An instance of an SshConfig powershell object.
+    #>
+    [Parameter(ValueFromPipeline)][SshConfig] $configObject
+  )
+  $text = '';
+
+  $props = $configObject.PSObject.Properties | Where-Object { $_.Name -ne 'Hosts' };
+
+  # Global settings
+  $props | ForEach-Object {
+    $text += "$($prop.Name) $($prop.Value)`n"
+  }
+
+  # Hosts objects
+  $configObject.Hosts | ForEach-Object {
+    $hostEntry = $_;
+    $properties = $hostEntry.PSObject.Properties | ForEach-Object { $_ };
+    $text += "Host $($hostEntry.Name)`n"
+    $properties | Where-Object {$_.Name -ne 'Name'} | ForEach-Object {
+      $prop = $_;
+      if ($null -eq $prop.Value) {
+        return;
+      }
+      
+      $text += "  $($prop.Name) $($prop.Value)`n";
+    }
+
+    $text += "`n";
+  }
+
+  return $text;
 }
 

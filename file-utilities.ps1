@@ -73,6 +73,34 @@ function Get-Base64StringFromFile($file) {
 	return [System.Convert]::ToBase64String($bytes);
 }
 
+function Get-ChildItemPretty ($dir) {
+	if ($null -eq $dir) {
+		$dir = '.'
+	}
+
+	$children = Get-ChildItem $dir;
+	if ($null -eq $children) {return;}
+	$dirs = $children | Where-Object {$_.PSIsContainer};
+	$files = $children | Where-Object {-not $_.PSIsContainer};
+	
+  if ($null -ne $files) {
+    Write-Host $files[0].Directory.FullName -BackgroundColor DarkGray -NoNewline;
+	  Write-Host;
+  } elseif ($null -ne $dirs -and $null -ne $dirs[0] -and $null -ne $dirs[0].Parent) {
+    Write-Host $dirs[0].Parent.FullName -BackgroundColor DarkGray -NoNewline;
+	  Write-Host;
+	}
+	
+	$foreground = $host.ui.RawUI.ForegroundColor
+	$host.ui.RawUI.ForegroundColor = 'Magenta';
+	$dirs | Sort-Object {$_.Name} | Format-Wide -Property {$_.Name} -AutoSize;
+	$host.ui.RawUI.ForegroundColor = $foreground;
+	
+	$files | Sort-Object {$_.Name} | ForEach-Object {
+		Write-Host "  $($_.Name)";
+	};
+}
+
 function Copy-ItemRemote {
   <#
     .SYNOPSIS
