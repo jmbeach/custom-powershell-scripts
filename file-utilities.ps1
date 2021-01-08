@@ -114,9 +114,6 @@ function Copy-ItemRemote {
   
     .EXAMPLE
       Copy-Item ./to-copy.txt c:\my-destination $session
-  
-    .LINK
-      link to further docs
   #>
   [CmdletBinding()]
   param (
