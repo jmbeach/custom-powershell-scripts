@@ -73,8 +73,41 @@ function Get-Base64StringFromFile($file) {
 	return [System.Convert]::ToBase64String($bytes);
 }
 
-function Copy-ItemRemote ($filePath, $destination) {
-  # inspired by https://social.technet.microsoft.com/Forums/en-US/64a3d37c-9828-4feb-817a-d28e7a147f25/copy-file-from-local-to-remote?forum=winserverpowershell
+function Copy-ItemRemote {
+  <#
+    .SYNOPSIS
+      Copies a file to a remote destination via a powershell session
+  
+    .DESCRIPTION
+      Useful for copying files from a powershell v5+ instance to a
+      powershell <v5 powershell instance.
+
+      Inspired by inspired by https://social.technet.microsoft.com/Forums/en-US/64a3d37c-9828-4feb-817a-d28e7a147f25/copy-file-from-local-to-remote?forum=winserverpowershell
+  
+    .EXAMPLE
+      Copy-Item ./to-copy.txt c:\my-destination $session
+  
+    .LINK
+      link to further docs
+  #>
+  [CmdletBinding()]
+  param (
+      <#
+       .PARAMETER filePath
+         Path to the file to copy
+      #>
+      [Parameter()][string] $filePath,
+      <#
+       .PARAMETER destination
+         Full path to the remote destination
+      #>
+      [Parameter()][string] $destination,
+      <#
+       .PARAMETER session
+         Session instance used to copy the file
+      #>
+      [Parameter()][PSSession] $session
+  )
   Invoke-Command -Session $session -ScriptBlock {
     param($txt)
     [System.Io.File]::WriteAllText($destination, $txt);
