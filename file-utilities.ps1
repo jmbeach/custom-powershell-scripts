@@ -96,17 +96,17 @@ function Copy-ItemRemote {
        .PARAMETER filePath
          Path to the file to copy
       #>
-      [Parameter()][string] $filePath,
+      [Parameter(Mandatory)][string] $filePath,
       <#
        .PARAMETER destination
          Full path to the remote destination
       #>
-      [Parameter()][string] $destination,
+      [Parameter(Mandatory)][string] $destination,
       <#
        .PARAMETER session
          Session instance used to copy the file
       #>
-      [Parameter()][PSSession] $session
+      [Parameter(Mandatory)][System.Management.Automation.Runspaces.PSSession] $session
   )
   Invoke-Command -Session $session -ScriptBlock {
     param($txt)
