@@ -7,7 +7,12 @@ function New-Shim($shimConfig) {
   $script = "
 function global:$($shimConfig.name) {
   # tag: shim
-  Invoke-Expression `"$($shimConfig.path)`" -ArgumentList `@Args";
+  if (`$Args.Length -gt 0) {
+    & `"$($shimConfig.path)`" `@Args;
+  } else {
+    & `"$($shimConfig.path)`";
+  }";
+
   if ($shimConfig.devNull -eq $true) {
     $script += " | Out-Null;";
   }
