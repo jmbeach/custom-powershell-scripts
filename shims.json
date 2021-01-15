@@ -5,6 +5,10 @@
   },
   {
     "name": "omnisharp",
-    "path": "C:\\Users\\JBeach\\code\\sandbox\\omnisharp-roslyn\\bin\\Debug\\OmniSharp.Http.Driver\\net472\\OmniSharp.exe"
+    "path": "C:/Users/JBeach/code/sandbox/omnisharp-roslyn/bin/Debug/OmniSharp.Http.Driver/net472/OmniSharp.exe"
+  },
+  {
+    "name": "gacutil",
+    "path": "C:/Program Files (x86)/Microsoft SDKs/Windows/v10.0A/bin/NETFX 4.8 Tools/gacutil.exe"
   }
 ]
