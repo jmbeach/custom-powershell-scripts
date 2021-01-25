@@ -141,3 +141,38 @@ function Get-ChildItemPretty ($dir) {
 }
 
 Set-Alias -Name ls -Value Get-ChildItemPretty -Option AllScope
+
+function Sort-Numeric {
+  [CmdletBinding()]
+  param (
+    [Parameter(Mandatory = $true, Position = 0, ValueFromPipeline = $true)]
+    [object]$InputObject
+  )
+
+  End {
+	$i = 0;
+	$mapped = $input | Foreach-Object {
+		$file = $_;
+		$fileName = $file;
+		if ($file.GetType().Name -eq 'FileInfo') {
+			$fileName = $file.Name;
+		}
+		$r = [Regex]::new('(?<!mp)\d+');
+		$match = $r.Match($fileName)
+		$sortIndex = $i;
+		if ($match.Success) {
+			$sortIndex = [int]::Parse($match.Value);
+		}
+
+		$result = [psobject]@{
+			Data = $file;
+			Sort = $sortIndex;
+		}
+
+		$i++;
+		return $result;
+	}
+
+	$mapped | Sort-Object -Property Sort | Foreach-Object { $_.Data };
+  }
+}
