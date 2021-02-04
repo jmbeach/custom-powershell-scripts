@@ -13,6 +13,7 @@ function Get-ImageType($img) {
   # reads first 8 bytes of an image (in case it is png -- longest)
   $bytes = Get-Content $img -AsByteStream -ReadCount 1 -TotalCount 8;
   # ToString("X2") formats hexadecimal, using png since it's the longest
+  # In other words, get the first 9 bytes, because that's the most you'll need
   $fileHeader = ($bytes | Select-Object -first $imgHeaders['png'].Length | ForEach-Object { $_.ToString("X2") });
   $keys = $imgHeaders.Keys | ForEach-Object { $_.ToString() };
   for ($i = 0; $i -lt $imgHeaders.Count; $i++) {
@@ -23,10 +24,10 @@ function Get-ImageType($img) {
       if ($header[$j] -ne $fileHeader[$j]) {
         $isMatch = $false;
       }
+    }
 
-      if ($isMatch) {
-        return $extension;
-      }
+    if ($isMatch) {
+      return $extension;
     }
   }
 
