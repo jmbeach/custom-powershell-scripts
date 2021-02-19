@@ -60,7 +60,7 @@ class FileLogger: ILogger {
     }
 
     $logText = $logParams.Object;
-    if ($logParams.Object.GetType().Name -like '*[]*' -and $null -ne $logParams.Separator) {
+    if ($logParams.Object.GetType().Name.Contains("[]") -and $null -ne $logParams.Separator) {
       $logText = [string]::Join($logParams.Separator, $logParams.Object);
     }
 
