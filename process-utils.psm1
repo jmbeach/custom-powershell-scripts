@@ -35,3 +35,24 @@ function Capture-RunningProcess {
     Start-Sleep -Seconds 1;
   }
 }
+
+function Get-ServicesDetailed {
+  Get-Service | ForEach-Object {
+    # convert to psobject
+    $service = $_ | ConvertTo-Json | ConvertFrom-Json;
+    $service | Add-Member -NotePropertyName 'ServiceDll' -NotePropertyValue $null;
+    $match = Get-ChildItem HKLM:\SYSTEM\CurrentControlSet\Services\$($service.Name)
+    if ($null -ne $match) {
+      if ($null -ne ($match.Property | Where-Object {$_ -eq 'ServiceDll'})) {
+        if ($match.Length -gt 0) {
+          $match = $match[0];
+        }
+
+        $serviceDll = $match.GetValue('ServiceDll');
+        $service.ServiceDll = $serviceDll;
+      }
+    }
+
+    return $service;
+  }
+}
