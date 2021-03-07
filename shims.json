@@ -1,5 +1,9 @@
 [
   {
+    "name": "openconnect",
+    "path": "C:/Program Files (x86)/OpenConnect-GUI/openconnect.exe"
+  },
+  {
     "name": "msbuild",
     "path": "C:/Program Files (x86)/MSBuild/14.0/bin/MSBuild.exe"
   },
