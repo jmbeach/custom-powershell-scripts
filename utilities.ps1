@@ -130,7 +130,12 @@ function Kill-NonDefault () {
 
 	$processes = Get-Process | Sort-Object Name | Get-Unique | Where-Object { -not $defaultProcesses.Contains($_.Name.ToUpper()) }
 	$defaultServices = Get-Content "$HOME\custom-scripts\default-services.txt" | ForEach-Object { $_.ToUpper() };
-	$services = Get-Service | Where-Object { -not $defaultServices.Contains($_.Name.ToUpper()) }
+	$services = Get-Service | Where-Object {
+		$svc = $_;
+		# Filter out services in default services list (don't want to kill them)
+		return $null -eq ($defaultServices | Where-Object { $svc.Name -Like $_ })
+	}
+
 	$services | ForEach-Object {
 		Write-Host $('Stopping service "' + $_.Name + '".');
 		Get-Service $_.Name | Stop-Service -Force;
