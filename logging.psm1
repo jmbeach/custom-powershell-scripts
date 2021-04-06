@@ -2,12 +2,9 @@
 class IWriteLogParams {
   [object]$Object;
   [object]$Separator
-  [ConsoleColor]$ForegroundColor
+  [Nullable[ConsoleColor]] $ForegroundColor = $null
   [ConsoleColor]$BackgroundColor
   [bool]$NoNewLine
-  IWriteLogParams() {
-    $this.ForegroundColor = [ConsoleColor]::White;
-  }
 }
 class ILogger {
   [void] WriteLog([IWriteLogParams]$logParams) {}
@@ -40,10 +37,18 @@ class ConsoleLogger : ILogger {
   }
 
   [void] WriteLog([IWriteLogParams]$logParams) {
+    if ($null -eq $logParams.ForegroundColor) {
+      $logParams.ForegroundColor = [ConsoleColor]::White;
+    }
+
     $this._writeLog($logParams, "INFO");
   }
 
   [void] WriteError([IWriteLogParams]$logParams) {
+    if ($null -eq $logParams.ForegroundColor) {
+      $logParams.ForegroundColor = [ConsoleColor]::Red;
+    }
+    
     $this._writeLog($logParams, "ERROR");
   }
 }
