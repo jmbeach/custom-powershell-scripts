@@ -221,7 +221,8 @@ function Write-Tabular([array]$list, [scriptblock]$highlightExpression, $headerU
 			$member = $_;
 			$details = $writingDetails[$member.Name];
 			$size = getTextSize($item.PSObject.Properties[$member.Name].Value.ToString());
-			if ($size -gt $details.maxLength) {
+			$maxLength = $details.maxLength
+			if ($size -gt $maxLength) {
 				$writingDetails[$member.Name].maxLength = $size;
 			}
 		}
