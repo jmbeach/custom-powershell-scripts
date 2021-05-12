@@ -192,18 +192,18 @@ function Ssh-Copy-Id {
      .PARAMETER target
        Host to copy the key to.
     #>
-    [Parameter()][string] $target,
+    [Parameter(Mandatory=$true)][string] $target,
     <#
      .PARAMETER user
        Optionally specify the user to connect as.
     #>
-    [Parameter()][string] $user,
+    [Parameter(Mandatory=$true)][string] $user,
     <#
      .PARAMETER identityFile
        Name/path to the identity file you want to copy to the host.
        Defaults to ~/.ssh/id_rsa.pub (or the one specified in your ssh config file)
     #>
-    [Parameter()][string] $identityFile
+    [Parameter(Mandatory=$true)][string] $identityFile
   )
 
   $config = ConvertFrom-SshConfigFile;
