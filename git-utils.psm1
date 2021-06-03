@@ -122,6 +122,42 @@ function Get-GitStatus () {
     return $result;
 }
 
-function Set-GitAddAllNew () {
+class GitDiff {
+    [string]$fileName;
+    [System.Collections.Generic.List[string]]$addedLines = [System.Collections.Generic.List[string]]::new();
+}
+function Get-GitDiffs () {
+    $diff = git --no-pager diff;
+    $result = [System.Collections.Generic.List[GitDiff]]::new();
+    $currentDiff = $null;
+    $diff | ForEach-Object {
+        $line = $_;
+        if ($line.StartsWith('diff --git')) {
+            if ($null -ne $currentDiff) {
+                # Done processing last diff
+                $result.Add($currentDiff);
+            }
 
+            $currentDiff = [GitDiff]::new();
+            $currentDiff.fileName = $line.Split(' ')[2].Substring(2).Trim()
+
+            # done processing this line
+            return;
+        }
+
+        if ($line.StartsWith('index ')) {
+            return;
+        }
+
+        if ($line.StartsWith('+++ ') -or $line.StartsWith('--- ') -or $line.StartsWith('@@')) {
+            return;
+        }
+
+        if ($line.StartsWith('+')) {
+            $currentDiff.addedLines.Add($line.Substring(1));
+        }
+    }
+
+    $result.Add($currentDiff);
+    return $result;
 }
