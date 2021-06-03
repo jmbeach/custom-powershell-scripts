@@ -47,3 +47,81 @@ function Set-GitUserIronJared () {
     git config --global user.email 'beachj@ironsolutions.com';
     git config --global user.name 'Jared Beach'
 }
+
+enum GitChangeType {
+    Added
+    Modified
+    Deleted
+}
+
+class GitChange {
+    [string]$fileName;
+    [GitChangeType]$changeType;
+    [boolean]$isStaged;
+}
+
+class GitStatus {
+    [string]$branch;
+    [boolean]$upToDate;
+    [System.Collections.Generic.List[GitChange]]$changes = [System.Collections.Generic.List[GitChange]]::new()
+}
+
+function Get-GitStatus () {
+    $status = git status;
+    $result = [GitStatus]::new()
+    $staged = $true;
+    $status | ForEach-Object {
+        $line = $_.Trim();
+        if ($line.Contains('Changes to be committed:')) {
+            $staged = $true;
+            return;
+        } elseif ($line.Contains('Changes not staged for commit:')) {
+            $staged = $false;
+            return;
+        } elseif ($line.Contains('Untracked files:')) {
+            $staged = $false;
+            return;
+        } elseif ($line.Contains('use "git')) {
+            # Skip these "tip" lines
+            return;
+        } elseif ($line.Contains('On branch')) {
+            $branch = $line.Split('On branch')[1].Trim()
+            $result.branch = $branch;
+            return;
+        } elseif ($line.Contains('Your branch is up to date')) {
+            $result.upToDate = $true;
+            return;
+        } elseif ($line.Contains('Your branch is not up to date')) {
+            $result.upToDate = $false;
+            return;
+        }
+
+        $change = [GitChange]::new();
+        $change.isStaged = $staged;
+        if ($line.Contains('new file:')) {
+            $change.fileName = $line.Split('new file:')[1].Trim();
+            $change.changeType = [GitChangeType]::Added;
+        } elseif ($line.Contains('deleted:')) {
+            $change.fileName = $line.Split('deleted:')[1].Trim();
+            $change.changeType = [GitChangeType]::Deleted;
+        } elseif ($line.Contains('modified:')) {
+            $change.fileName = $line.Split('modified:')[1].Trim();
+            $change.changeType = [GitChangeType]::Modified;
+        } else {
+            $change.fileName = $line.Trim();
+            $change.changeType = [GitChangeType]::Added;
+        }
+
+        if ([string]::IsNullOrEmpty($change.fileName)) {
+            return;
+        }
+
+        $result.changes.Add($change);
+    }
+
+    return $result;
+}
+
+function Set-GitAddAllNew () {
+
+}
