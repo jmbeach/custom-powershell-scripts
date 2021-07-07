@@ -203,6 +203,10 @@ function Write-Tabular([array]$list, [scriptblock]$highlightExpression, $headerU
 	}
 
 	function getTextSize ($text) {
+		if (-not $IsWindows) {
+			return $text.Length;
+		}
+		
 		$font = [System.Drawing.Font]::new('Meslo LG M for Powerline', 16, [System.Drawing.FontStyle]::Regular);
 		return [System.Windows.Forms.TextRenderer]::MeasureText($text, $font).width;
 	}
