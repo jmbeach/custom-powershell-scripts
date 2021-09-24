@@ -53,6 +53,11 @@ $scriptblock = {
   } elseif ($commandParts.Length -eq 2) {
     $commands | Where-Object { "*$_*" -like "*$wordToComplete*" }
     Get-YarnProjectCommands | Where-Object { "*$_*" -like "*$wordToComplete*" }
+  } elseif ($commandParts.Length -eq 3) {
+    $command = $commandParts[1];
+    if ($command -eq 'remove') {
+      Get-YarnPackages | Where-Object { "*$_*" -like "*$wordToComplete*" }
+    }
   }
 }
 Register-ArgumentCompleter -Native -CommandName yarn -ScriptBlock $scriptblock;
@@ -74,5 +79,13 @@ function Get-YarnProjectCommands () {
       }
     }
   }
+  return $result;
+}
+
+function Get-YarnPackages() {
+  $result = [System.Collections.Generic.List[string]]::new();
+  $packageJson = Get-Content package.json | ConvertFrom-Json;
+  $packageJson.dependencies.PSObject.Properties.Name | ForEach-Object { $result.Add($_) }
+  $packageJson.devDependencies.PSObject.Properties.Name | ForEach-Object { $result.Add($_) }
   return $result;
 }
