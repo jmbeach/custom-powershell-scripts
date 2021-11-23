@@ -72,3 +72,7 @@ function Kill-MonoOutputs() {
     pactl unload-module $_.OwnerModule;
   }
 }
+
+function Start-Pulse () {
+	pulseaudio --load=module-native-protocol-tcp --exit-idle-time=-1 --daemon
+}

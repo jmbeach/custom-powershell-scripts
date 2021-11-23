@@ -358,3 +358,7 @@ function Write-Tabular([array]$list, [scriptblock]$highlightExpression, $headerU
 		$i++
 	}
 }
+
+function catman ($program) {
+	man -P cat $program
+}
