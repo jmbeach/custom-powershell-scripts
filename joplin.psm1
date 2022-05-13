@@ -8,16 +8,17 @@ function Create-JoplinNote(
   [PSCustomObject]$body = [PSCustomObject]@{
     title = $title;
     body = $body;
-    parent = $parent;
+    parent_id = $parent;
   };
   $bodyJson = $($body | ConvertTo-Json)
   return Invoke-WebRequest -Uri $fullUrl -ContentType 'application/json' -Method Post -Body $bodyJson;
 }
 
-function Get-JoplinNoteSearch(
+function Get-JoplinSearch(
   [parameter(Mandatory = $true)][string]$baseUrl,
   [parameter(Mandatory = $true)][string]$apiKey,
-  [parameter(Mandatory = $true)][string]$query) {
-  $fullUrl = "$baseUrl/search?token=$apiKey&query=$query";
+  [parameter(Mandatory = $true)][string]$query,
+  [parameter()][string]$type = 'note') {
+  $fullUrl = "$baseUrl/search?token=$apiKey&query=$query&type=$type";
   return (Invoke-WebRequest -Uri $fullUrl -Method Get).Content | ConvertFrom-Json;
 }
