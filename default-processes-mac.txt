@@ -1,6 +1,7 @@
 /Applications/Barrier.app/Contents/MacOS/barrier
 /Applications/Barrier.app/Contents/MacOS/barriers
 /Applications/Discord.app/Contents/Frameworks/Discord Helper (GPU).app/Contents/MacOS/Discord Helper (GPU)
+/Applications/Discord.app/Contents/Frameworks/Discord Helper (Renderer).app/Contents/MacOS/Discord Helper (Renderer)
 /Applications/Discord.app/Contents/Frameworks/Discord Helper.app/Contents/MacOS/Discord Helper
 /Applications/Discord.app/Contents/Frameworks/Electron Framework.framework/Versions/A/Helpers/chrome_crashpad_handler
 /Applications/Discord.app/Contents/MacOS/Discord
@@ -45,6 +46,7 @@
 /sbin/launchd
 /System/Applications/Music.app/Contents/PlugIns/MusicCacheExtension.appex/Contents/MacOS/MusicCacheExtension
 /System/Applications/TV.app/Contents/PlugIns/TVCacheExtension.appex/Contents/MacOS/TVCacheExtension
+/System/Applications/Utilities/Activity Monitor.app/Contents/MacOS/Activity Monitor
 /System/Library/CoreServices/AirPlayUIAgent.app/Contents/MacOS/AirPlayUIAgent
 /System/Library/CoreServices/APFSUserAgent
 /System/Library/CoreServices/appleeventsd
