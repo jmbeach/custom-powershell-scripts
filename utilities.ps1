@@ -127,29 +127,38 @@ function Kill-Unessential () {
 
 function Kill-NonDefault () {
 	$defaultProcesses = Get-Content "$HOME\custom-scripts\default-processes.txt" | ForEach-Object { $_.ToUpper() };
+  if ($IsMacOS) {
+    $defaultProcesses = Get-Content "$HOME\custom-scripts\default-processes-mac.txt" | ForEach-Object { $_.ToUpper() };
+  }
 
 	$processes = Get-Process | Sort-Object Name | Get-Unique | Where-Object { -not $defaultProcesses.Contains($_.Name.ToUpper()) }
+  $processes = $processes | Where-Object { $null -eq $_.Path -or -not $defaultProcesses.Contains($_.Path.ToUpper()) }
 	$defaultServices = Get-Content "$HOME\custom-scripts\default-services.txt" | ForEach-Object { $_.ToUpper() };
-	$services = Get-Service | Where-Object {
-		$svc = $_;
-		# Filter out services in default services list (don't want to kill them)
-		return $null -eq ($defaultServices | Where-Object { $svc.Name -Like $_ })
-	}
+  If ($IsWindows) {
+    $services = Get-Service | Where-Object {
+      $svc = $_;
+      # Filter out services in default services list (don't want to kill them)
+      return $null -eq ($defaultServices | Where-Object { $svc.Name -Like $_ })
+    }
 
-	$services | ForEach-Object {
-		Write-Host $('Stopping service "' + $_.Name + '".');
-		Get-Service $_.Name | Stop-Service -Force;
-	}
+    $services | ForEach-Object {
+      Write-Host $('Stopping service "' + $_.Name + '".');
+      Get-Service $_.Name | Stop-Service -Force;
+    }
+  }
+
+	
 
 	$processes | ForEach-Object {
-		[string]$command = Get-CimInstance Win32_Process -Filter "name = '$($_.Name).exe'" | Select-Object CommandLine 
+		[string]$command = $_.CommandLine
+    if ($_.Path -eq "" -or $null -eq $_.Path) { return }
 		if ($command.ToUpper().Contains('BITDEFENDER')) {
 			Write-Host "Skipping process $($_.Name) because it is part of bit defender";
 			return;
 		}
 
-		Write-Host $('Stopping process "' + $_.Name + '".');
-		Get-Process $_.Name | Stop-Process -Force;
+		Write-Host "Stopping process $($_.Name) - $($_.Path)";
+		$_ | Stop-Process -Force;
 	}
 }
 
