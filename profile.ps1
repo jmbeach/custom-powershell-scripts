@@ -1,4 +1,5 @@
 . $HOME/code/github/private-powershell-scripts/profile.ps1
+Import-Module ./youtube.psm1
 
 if (-not $env:AWS_REGION) {
   $env:AWS_REGION = 'us-east-1'
