@@ -1,3 +1,4 @@
+. $HOME/code/github/private-powershell-scripts/profile.ps1
 
 if (-not $env:AWS_REGION) {
   $env:AWS_REGION = 'us-east-1'
@@ -11,3 +12,4 @@ function prompt {
   Write-Host -NoNewline " $($executionContext.SessionState.Path.CurrentLocation)$('>' * ($nestedPromptLevel + 1))";
   return " "
 }
+
