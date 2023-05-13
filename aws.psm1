@@ -21,7 +21,7 @@ function awsall() {
   $result = [System.Collections.Generic.List[Object]]::new()
   for ($i = 0; $i -lt $regions.Length; $i = $i + 1) {
     $region = $regions[$i]
-    Write-Host "aws $args --region $region"
+    Write-Host "aws $args --region $region ($($i + 1)/$($regions.Length))"
     $commandResult = aws @Args --region $region | ConvertFrom-Json
     $result.Add($commandResult)
   }
