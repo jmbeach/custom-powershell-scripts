@@ -16,3 +16,14 @@ function Get-AnkiCards([string]$query) {
   } | ConvertTo-Json
   return (Invoke-WebRequest -Method Post -Uri $ANKI_URL -Headers $headers -Body $body).Content | ConvertFrom-Json
 }
+
+function Get-AnkiCardInfo([int64[]]$cardIds) {
+  $body = @{
+    action = 'cardsInfo';
+    version = 6;
+    params = @{
+      cards = $cardIds
+    }
+  } | ConvertTo-Json
+  return (Invoke-WebRequest -Method Post -Uri $ANKI_URL -Headers $headers -Body $body).Content | ConvertFrom-Json
+}
