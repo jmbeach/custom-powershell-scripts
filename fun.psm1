@@ -1,5 +1,5 @@
-Import-Module ~/.nuget/packages/htmlagilitypack/1.11.46/lib/netstandard2.0/HtmlAgilityPack.dll
-Import-Module ~/.nuget/packages/fizzler/1.2.0/lib/netstandard2.0/Fizzler.dll
+Import-Module ~/.nuget/packages/htmlagilitypack/1.11.57/lib/netstandard2.0/HtmlAgilityPack.dll
+Import-Module ~/.nuget/packages/fizzler/1.3.0/lib/netstandard2.0/Fizzler.dll
 Import-Module ~/.nuget/packages/fizzler.systems.htmlagilitypack/1.2.1/lib/netstandard2.0/Fizzler.Systems.HtmlAgilityPack.dll
 
 function Get-RandomWikisForRace() {

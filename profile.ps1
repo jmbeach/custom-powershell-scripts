@@ -1,3 +1,9 @@
+# Makes completion work more like linux
+Import-Module PSReadLine
+
+# Set Tab to complete intstead of arrow keys
+Set-PSReadLineKeyHandler -Key Tab -Function Complete
+
 . $HOME/code/github/private-powershell-scripts/profile.ps1
 Import-Module $HOME/code/github/custom-powershell-scripts/youtube.psm1
 Import-Module $HOME/code/github/custom-powershell-scripts/aws.psm1
