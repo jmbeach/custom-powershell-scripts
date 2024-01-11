@@ -8,6 +8,8 @@ Set-PSReadLineKeyHandler -Key Tab -Function Complete
 Import-Module $HOME/code/github/custom-powershell-scripts/youtube.psm1
 Import-Module $HOME/code/github/custom-powershell-scripts/aws.psm1
 Import-Module $HOME/code/github/custom-powershell-scripts/anki.psm1
+# Install-Module powershell-yaml
+Import-Module powershell-yaml
 
 if (-not $env:AWS_REGION) {
   $env:AWS_REGION = 'us-east-1'
