@@ -8,6 +8,7 @@ Set-PSReadLineKeyHandler -Key Tab -Function Complete
 Import-Module $HOME/code/github/custom-powershell-scripts/youtube.psm1
 Import-Module $HOME/code/github/custom-powershell-scripts/aws.psm1
 Import-Module $HOME/code/github/custom-powershell-scripts/anki.psm1
+Import-Module $HOME/code/github/custom-powershell-scripts/spicy-proton/spicy-proton.psm1
 # Install-Module powershell-yaml
 Import-Module powershell-yaml
 
