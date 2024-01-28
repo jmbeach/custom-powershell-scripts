@@ -184,6 +184,14 @@ function Kill-NonDefault ()
       Write-Information "Process $($_.name) stopped"
     }
   }
+
+  $continue = Read-Host "Would you like to kill wsl as well? [y/n]"
+  if ($continue.ToUpper() -eq "Y")
+  {
+    Write-Information "Stopping wsl..."
+    wsl --shutdown
+    Write-Information "wsl stopped"
+  }
 }
 
 function Destroy-SearchUI
