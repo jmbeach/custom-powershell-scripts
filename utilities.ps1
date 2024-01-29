@@ -129,29 +129,29 @@ function Get-RunningProcessCount ()
 
 function Kill-NonDefault ()
 {
-  $defaultProcesses = Get-Content "$HOME/code/github/custom-powershell-scripts/default-processes.txt" | ForEach-Object { $_.ToUpper() };
+  $baseDir = "$HOME/code/github/custom-powershell-scripts";
+  $defaultProcesses = Get-Content "$baseDir/default-processes.txt" | ForEach-Object { $_.ToUpper() };
   if ($IsMacOS)
   {
-    $defaultProcesses = Get-Content "$HOME/code/github/custom-powershell-scripts/default-processes-mac.txt" | ForEach-Object { $_.ToUpper() };
+    $defaultProcesses = Get-Content "$baseDir/default-processes-mac.txt" | ForEach-Object { $_.ToUpper() };
   }
 
-  Write-Information "Getting processes..."
-  $processes = Get-Process -ErrorAction SilentlyContinue | Sort-Object Name | Get-Unique | Where-Object { -not $defaultProcesses.Contains($_.Name.ToUpper()) }
-  $processes = $processes | Where-Object { $null -eq $_.Path -or -not $defaultProcesses.Contains($_.Path.ToUpper()) }
-  Write-Information "Found $($processes.Length) potential processes to kill"
-  $defaultServices = Get-Content "$HOME/code/github/custom-powershell-scripts/default-services.txt" | ForEach-Object { $_.ToUpper() };
+  $processes = $processes | Where-Object {
+    -not [string]::IsNullOrEmpty($_.Path) -and -not $defaultProcesses.Contains($_.Path.ToUpper())
+  }
+
   If ($IsWindows)
   {
     Write-Information "Getting services..."
+    $defaultServices = Get-Content "$baseDir/default-services.txt" | ForEach-Object { $_.ToUpper() };
     $services = Get-Service -ErrorAction SilentlyContinue | Where-Object {
       $svc = $_;
       # Filter out services in default services list (don't want to kill them)
-      return $null -eq ($defaultServices | Where-Object { $svc.Name -Like $_ })
+      return $svc.Status -eq "Running" -and $null -eq ($defaultServices | Where-Object { $svc.Name -Like $_ })
     }
     Write-Information "Found $($services.Length) potential services to kill"
 
     $services | ForEach-Object {
-      if ($_.Status -ne "Running") { return }
       $continue = Read-Host "Kill service $($_.Name) ($($_.Path ?? $_.BinaryPathName))? [y/n]"
       if ($continue.ToUpper() -eq "Y")
       {
@@ -161,21 +161,15 @@ function Kill-NonDefault ()
       }
     }
   }
-
-	
+  
+  Write-Information "Getting processes..."
+  $processes = Get-Process -ErrorAction SilentlyContinue `
+    | Sort-Object Name `
+    | Get-Unique `
+    | Where-Object { -not $defaultProcesses.Contains($_.Name.ToUpper()) }
+  Write-Information "Found $($processes.Length) potential processes to kill"
 
   $processes | ForEach-Object {
-    [string]$command = $_.CommandLine
-    if ($_.Path -eq "" -or $null -eq $_.Path)
-    {
-      return 
-    }
-    if ($command.ToUpper().Contains('BITDEFENDER'))
-    {
-      Write-Host "Skipping process $($_.Name) because it is part of bit defender";
-      return;
-    }
-
     $continue = Read-Host "Kill process $($_.name) ($($_.Path))? [y/n]"
     if ($continue.ToUpper() -eq "Y")
     {
@@ -219,26 +213,6 @@ function Get-Wallpapers()
     }
     cp $_.FullName $("$home\Pictures\Wallpapers\" + $_.Name + ".jpg");
   }
-}
-
-function Start-Blue ()
-{
-  ConEmu.exe -Icon "C:\tools\Cmder\icons\cmder_blue.ico" -run "{Powershell 5 as Admin}"
-}
-
-function Start-Red ()
-{
-  ConEmu.exe -Icon "C:\tools\Cmder\icons\red.ico" -run "{Powershell 5 as Admin}"
-}
-
-function Start-Purple ($title)
-{
-  if ($null -eq $title)
-  {
-    $title = 'PS';
-  }
-	
-  ConEmu.exe -Icon "C:\tools\Cmder\icons\cmder_purple.ico" -Title ($title) -run "{Powershell 5 as Admin}"
 }
 
 function Write-Tabular([array]$list, [scriptblock]$highlightExpression, $headerUnderlineColor, $highlightColor, $alternateRowColor=$false, $debug = $false)
